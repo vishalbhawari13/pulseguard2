@@ -37,25 +37,38 @@ public class DashboardActivity extends AppCompatActivity implements NavigationVi
         // Drawer Layout and Navigation
         drawerLayout = findViewById(R.id.drawer_layout);
         NavigationView navigationView = findViewById(R.id.nav_view);
-        navigationView.setNavigationItemSelectedListener(this);
 
-        // Get Navigation Header View to Update User Name
-        View headerView = navigationView.getHeaderView(0);
-        navUserName = headerView.findViewById(R.id.nav_user_name);
+        if (navigationView != null) {
+            navigationView.setNavigationItemSelectedListener(this);
+
+            // Get Navigation Header View to Update User Name
+            View headerView = navigationView.getHeaderView(0);
+            if (headerView != null) {
+                navUserName = headerView.findViewById(R.id.nav_user_name);
+            }
+        }
 
         // Bottom Navigation
         BottomNavigationView bottomNavigationView = findViewById(R.id.bottom_navigation);
-        bottomNavigationView.setOnNavigationItemSelectedListener(this::onBottomNavigationItemSelected);
+        if (bottomNavigationView != null) {
+            bottomNavigationView.setOnNavigationItemSelectedListener(this::onBottomNavigationItemSelected);
+        }
 
         // Display User's Name in Dashboard & Navigation Drawer
         welcomeText = findViewById(R.id.welcome_text);
-        if (user != null) {
-            String displayName = user.getDisplayName();
-            welcomeText.setText("Welcome, " + displayName);
-            navUserName.setText(displayName);
-        } else {
-            welcomeText.setText("Welcome to PulseGuard");
-            navUserName.setText("Guest User");
+        if (welcomeText != null) {
+            if (user != null) {
+                String displayName = user.getDisplayName();
+                welcomeText.setText("Welcome, " + displayName);
+                if (navUserName != null) {
+                    navUserName.setText(displayName);
+                }
+            } else {
+                welcomeText.setText("Welcome to PulseGuard");
+                if (navUserName != null) {
+                    navUserName.setText("Guest User");
+                }
+            }
         }
 
         // ActionBar Toggle for Drawer

@@ -138,14 +138,16 @@ public class MainActivity extends AppCompatActivity {
     /**
      * Updates the UI based on Firebase authentication status
      */
+    /**
+     * Updates the UI based on Firebase authentication status.
+     */
     private void updateUI(FirebaseUser user) {
         progressBar.setVisibility(View.GONE);
         if (user != null) {
-            String welcomeMessage = "Welcome to PulseGuard, " + user.getDisplayName() + "!";
-            welcomeText.setText(welcomeMessage);
-            welcomeText.setVisibility(View.VISIBLE);
-            signInButton.setVisibility(View.GONE);
-            signOutButton.setVisibility(View.VISIBLE);
+            // Redirect to DashboardActivity if user is authenticated
+            Intent intent = new Intent(MainActivity.this, DashboardActivity.class);
+            startActivity(intent);
+            finish(); // Close the MainActivity to prevent going back
         } else {
             welcomeText.setText("Please Sign In");
             welcomeText.setVisibility(View.VISIBLE);
@@ -153,4 +155,5 @@ public class MainActivity extends AppCompatActivity {
             signOutButton.setVisibility(View.GONE);
         }
     }
+
 }

@@ -48,8 +48,11 @@ dependencies {
     implementation("com.google.firebase:firebase-firestore") // Optional
     implementation("com.google.firebase:firebase-storage") // Optional
 
-    // Google Sign-In (Updated version)
+    // Google Sign-In (Use the latest version)
     implementation("com.google.android.gms:play-services-auth:21.3.0")
+
+    // Google Fit API for Health Data (Updated to 21.1.0)
+    implementation("com.google.android.gms:play-services-fitness:21.1.0")
 
     // AndroidX & Material Design
     implementation("androidx.appcompat:appcompat:1.7.0")

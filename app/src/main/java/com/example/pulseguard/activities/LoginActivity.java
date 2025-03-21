@@ -13,18 +13,31 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.pulseguard.R;
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
+import com.google.android.gms.auth.api.signin.GoogleSignIn;
+import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
+import com.google.android.gms.auth.api.signin.GoogleSignInClient;
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
+import com.google.android.gms.common.api.ApiException;
+import com.google.android.gms.common.api.Scope;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+
+import com.google.android.gms.fitness.FitnessOptions;
+import com.google.android.gms.fitness.data.DataType;
+
 
 public class LoginActivity extends AppCompatActivity {
+
+    private static final int REQUEST_OAUTH_REQUEST_CODE = 1;
 
     private EditText emailEditText, passwordEditText;
     private Button loginButton, signupButton;
     private ProgressBar progressBar;
     private FirebaseAuth mAuth;
+    private GoogleSignInClient googleSignInClient;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -47,6 +60,9 @@ public class LoginActivity extends AppCompatActivity {
             navigateToDashboard();
         }
 
+        // Configure Google Fit Sign-In
+        configureGoogleFit();
+
         // Login Button Click
         loginButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -63,6 +79,26 @@ public class LoginActivity extends AppCompatActivity {
             }
         });
     }
+
+    private void configureGoogleFit() {
+        FitnessOptions fitnessOptions = FitnessOptions.builder()
+                .addDataType(DataType.TYPE_STEP_COUNT_DELTA, FitnessOptions.ACCESS_READ)
+                .addDataType(DataType.TYPE_HEART_RATE_BPM, FitnessOptions.ACCESS_READ)
+                .addDataType(DataType.TYPE_CALORIES_EXPENDED, FitnessOptions.ACCESS_READ)
+                .build();
+
+        GoogleSignInAccount account = GoogleSignIn.getLastSignedInAccount(this);
+        if (account == null || !GoogleSignIn.hasPermissions(account, fitnessOptions)) {
+            GoogleSignIn.requestPermissions(
+                    this,
+                    REQUEST_OAUTH_REQUEST_CODE,
+                    GoogleSignIn.getLastSignedInAccount(this),
+                    fitnessOptions
+            );
+        }
+    }
+
+
 
     private void loginUser() {
         String email = emailEditText.getText().toString().trim();
@@ -99,5 +135,29 @@ public class LoginActivity extends AppCompatActivity {
         Intent intent = new Intent(LoginActivity.this, DashboardActivity.class);
         startActivity(intent);
         finish(); // Prevent returning to login
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        if (requestCode == REQUEST_OAUTH_REQUEST_CODE) {
+            Task<GoogleSignInAccount> task = GoogleSignIn.getSignedInAccountFromIntent(data);
+
+            try {
+                GoogleSignInAccount account = task.getResult(ApiException.class);
+                fetchHealthData(account);
+            } catch (ApiException e) {
+                Toast.makeText(this, "Google Fit permission denied: " + e.getStatusCode(), Toast.LENGTH_SHORT).show();
+            }
+        }
+    }
+
+
+    private void fetchHealthData(GoogleSignInAccount account) {
+        if (account != null) {
+            Toast.makeText(this, "Google Fit connected!", Toast.LENGTH_SHORT).show();
+            // TODO: Implement data retrieval from Google Fit API
+        }
     }
 }

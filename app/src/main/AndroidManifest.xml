@@ -7,10 +7,9 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 
-    <!-- Bluetooth permissions (For smartwatch integration) -->
-    <uses-permission android:name="android.permission.BLUETOOTH" />
-    <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
-    <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
+    <!-- Google Fit Permissions -->
+    <uses-permission android:name="android.permission.ACTIVITY_RECOGNITION"/>
+    <uses-permission android:name="android.permission.BODY_SENSORS"/>
 
     <!-- Location permissions (For GPS tracking if needed) -->
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
@@ -88,7 +87,6 @@
                 <data android:scheme="https" android:host="pulseguard.com" />
             </intent-filter>
         </activity>
-
 
     </application>
 

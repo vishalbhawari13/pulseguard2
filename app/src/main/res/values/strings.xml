@@ -1,13 +1,21 @@
 <resources>
+    <!-- App Name -->
     <string name="app_name">PulseGuard</string>
+
+    <!-- Navigation Drawer -->
     <string name="open">Open Navigation</string>
     <string name="close">Close Navigation</string>
+
+    <!-- Google Sign-In -->
     <string name="default_web_client_id">481351387620-kn484mj87dp5om2b68svn2kmdbvq7i6t.apps.googleusercontent.com</string>
-
-
-    <!-- Added Strings -->
     <string name="sign_in_prompt">Please Sign In</string>
     <string name="sign_in_google">Sign In with Google</string>
     <string name="sign_out">Sign Out</string>
+
+    <!-- Welcome & UI Text -->
     <string name="welcome_message">Welcome to PulseGuard, %1$s!</string>
+    <string name="view_health_stats">View Health Stats</string>
+    <string name="loading">Loading…</string>
+    <string name="error_occurred">An error occurred. Please try again…</string>
+
 </resources>
