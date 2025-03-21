@@ -1,32 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <color name="purple_200">#FFBB86FC</color>
+    <color name="purple_500">#FF6200EE</color>
+    <color name="purple_700">#FF3700B3</color>
+    <color name="teal_200">#FF03DAC5</color>
+    <color name="teal_700">#FF018786</color>
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+    <color name="colorPrimary">#6200EE</color>  <!-- You can change this color -->
+    <color name="background_color">#121212</color> <!-- Dark background -->
+    <color name="lightGray">#D3D3D3</color> <!-- Light gray color -->
+    <color name="dark_gray">#555555</color>
 
-    <!-- Primary Colors -->
-    <color name="colorPrimary">#6200EE</color>
-    <color name="colorPrimaryVariant">#3700B3</color>
-    <color name="colorSecondary">#03DAC6</color>
 
-    <!-- Background & Surface -->
-    <color name="colorBackground">#121212</color>
-    <color name="background_color">#121212</color>  <!-- ✅ ADDED to fix missing reference -->
-    <color name="colorOnBackground">#FFFFFF</color>
-    <color name="colorSurface">#1E1E1E</color>
-    <color name="colorOnSurface">#FFFFFF</color>
-
-    <!-- Additional Colors -->
-    <color name="colorError">#B00020</color>
-    <color name="colorSuccess">#4CAF50</color>
-    <color name="colorWarning">#FFC107</color>
-
-    <!-- Material Default Colors (FIXED MISSING COLORS) -->
-    <color name="purple_200">#BB86FC</color>
-    <color name="purple_500">#6200EE</color>
-    <color name="purple_700">#3700B3</color>
-    <color name="teal_200">#03DAC5</color>
-    <color name="teal_700">#018786</color>
-
-    <!-- Basic Colors -->
-    <color name="black">#000000</color>
-    <color name="white">#FFFFFF</color>
-    <color name="lightGray">#D3D3D3</color>
 </resources>

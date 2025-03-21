@@ -4,7 +4,6 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
-import android.widget.Button;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -20,7 +19,6 @@ import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.auth.api.signin.GoogleSignInClient;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.android.gms.common.api.ApiException;
-import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthCredential;
 import com.google.firebase.auth.FirebaseAuth;
@@ -35,7 +33,6 @@ public class MainActivity extends AppCompatActivity {
     private FirebaseAuth firebaseAuth;
 
     private TextView welcomeText;
-    private Button signInButton, signOutButton;
     private ProgressBar progressBar;
 
     @Override
@@ -48,7 +45,7 @@ public class MainActivity extends AppCompatActivity {
 
         // Configure Google Sign-In
         GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-                .requestIdToken(getString(R.string.default_web_client_id)) // Ensure this matches the Firebase project
+                .requestIdToken(getString(R.string.default_web_client_id))
                 .requestEmail()
                 .build();
 
@@ -56,13 +53,8 @@ public class MainActivity extends AppCompatActivity {
 
         // Initialize UI Components
         welcomeText = findViewById(R.id.welcome_text);
-        signInButton = findViewById(R.id.sign_in_button);
-        signOutButton = findViewById(R.id.sign_out_button);
         progressBar = findViewById(R.id.progress_bar);
-
-        // Set Button Click Listeners
-        signInButton.setOnClickListener(v -> signIn());
-        signOutButton.setOnClickListener(v -> signOut());
+        findViewById(R.id.sign_in_button).setOnClickListener(v -> signIn());
 
         // Check if a user is already signed in
         FirebaseUser currentUser = firebaseAuth.getCurrentUser();
@@ -114,7 +106,7 @@ public class MainActivity extends AppCompatActivity {
                     if (task.isSuccessful()) {
                         FirebaseUser user = firebaseAuth.getCurrentUser();
                         Log.d(TAG, "Sign-in successful: " + (user != null ? user.getDisplayName() : "Unknown User"));
-                        updateUI(user);
+                        navigateToDashboard();
                     } else {
                         Log.e(TAG, "Firebase Authentication Failed!", task.getException());
                         Toast.makeText(MainActivity.this, "Authentication Failed!", Toast.LENGTH_SHORT).show();
@@ -136,24 +128,24 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /**
-     * Updates the UI based on Firebase authentication status
-     */
-    /**
      * Updates the UI based on Firebase authentication status.
      */
     private void updateUI(FirebaseUser user) {
         progressBar.setVisibility(View.GONE);
         if (user != null) {
-            // Redirect to DashboardActivity if user is authenticated
-            Intent intent = new Intent(MainActivity.this, DashboardActivity.class);
-            startActivity(intent);
-            finish(); // Close the MainActivity to prevent going back
+            navigateToDashboard();
         } else {
             welcomeText.setText("Please Sign In");
             welcomeText.setVisibility(View.VISIBLE);
-            signInButton.setVisibility(View.VISIBLE);
-            signOutButton.setVisibility(View.GONE);
+            findViewById(R.id.sign_in_button).setVisibility(View.VISIBLE);
         }
     }
 
+    /**
+     * Navigates to DashboardActivity if user is authenticated
+     */
+    private void navigateToDashboard() {
+        startActivity(new Intent(MainActivity.this, DashboardActivity.class));
+        finish();
+    }
 }

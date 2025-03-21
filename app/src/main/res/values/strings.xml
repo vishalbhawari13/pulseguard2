@@ -1,7 +1,7 @@
 <resources>
     <!-- App Name -->
     <string name="app_name">PulseGuard</string>
-
+    <string name="app_logo">PulseGuard </string>
     <!-- Navigation Drawer -->
     <string name="open">Open Navigation</string>
     <string name="close">Close Navigation</string>
