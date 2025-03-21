@@ -1,22 +1,40 @@
 package com.example.pulseguard.utils;
 
+import android.Manifest;
 import android.app.Activity;
+import android.content.pm.PackageManager;
 import android.util.Log;
+import androidx.annotation.NonNull;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
-import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
-import com.google.android.gms.common.api.ApiException;
 import com.google.android.gms.fitness.Fitness;
 import com.google.android.gms.fitness.FitnessOptions;
+import com.google.android.gms.fitness.data.DataPoint;
+import com.google.android.gms.fitness.data.DataSource;
 import com.google.android.gms.fitness.data.DataType;
 import com.google.android.gms.fitness.data.Field;
+import com.google.android.gms.fitness.request.DataReadRequest;
+import com.google.android.gms.fitness.request.DataSourcesRequest;
+import com.google.android.gms.fitness.request.SensorRequest;
+import com.google.android.gms.fitness.result.DataReadResponse;
+import com.google.android.gms.fitness.data.DataSet;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
+import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 public class GoogleFitHelper {
     private static final String TAG = "GoogleFitHelper";
-    private static final int GOOGLE_FIT_PERMISSIONS_REQUEST_CODE = 1;
-    private Activity activity;
+    private static final int REQUEST_ACTIVITY_RECOGNITION = 100;
+
+    private final Activity activity;
+    private HealthDataListener healthDataListener;
+
+    public interface HealthDataListener {
+        void onDataReceived(String label, float value);
+    }
 
     public GoogleFitHelper(Activity activity) {
         this.activity = activity;
@@ -25,51 +43,125 @@ public class GoogleFitHelper {
     public void requestGoogleFitPermissions() {
         FitnessOptions fitnessOptions = FitnessOptions.builder()
                 .addDataType(DataType.TYPE_STEP_COUNT_DELTA, FitnessOptions.ACCESS_READ)
-                .addDataType(DataType.TYPE_CALORIES_EXPENDED, FitnessOptions.ACCESS_READ)
                 .addDataType(DataType.TYPE_HEART_RATE_BPM, FitnessOptions.ACCESS_READ)
+                .addDataType(DataType.TYPE_CALORIES_EXPENDED, FitnessOptions.ACCESS_READ)
                 .build();
 
         GoogleSignInAccount account = GoogleSignIn.getLastSignedInAccount(activity);
-
         if (!GoogleSignIn.hasPermissions(account, fitnessOptions)) {
-            GoogleSignIn.requestPermissions(activity, GOOGLE_FIT_PERMISSIONS_REQUEST_CODE, account, fitnessOptions);
+            GoogleSignIn.requestPermissions(activity, 1, account, fitnessOptions);
         } else {
-            fetchHealthData();
+            startLiveHealthTracking();
+            fetchHistoricalHealthData();
         }
     }
 
-    public void fetchHealthData() {
+    public void requestActivityRecognitionPermission() {
+        if (ContextCompat.checkSelfPermission(activity, Manifest.permission.ACTIVITY_RECOGNITION)
+                != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(activity,
+                    new String[]{Manifest.permission.ACTIVITY_RECOGNITION},
+                    REQUEST_ACTIVITY_RECOGNITION);
+        }
+    }
+
+    public void startLiveHealthTracking() {
         GoogleSignInAccount account = GoogleSignIn.getLastSignedInAccount(activity);
         if (account == null) {
             Log.e(TAG, "Google Sign-In required before accessing Google Fit data.");
             return;
         }
 
-        // Fetch Steps Count
-        Fitness.getHistoryClient(activity, account)
-                .readDailyTotal(DataType.TYPE_STEP_COUNT_DELTA)
-                .addOnSuccessListener(dataSet -> {
-                    int steps = dataSet.isEmpty() ? 0 : dataSet.getDataPoints().get(0).getValue(Field.FIELD_STEPS).asInt();
-                    Log.d(TAG, "Steps Today: " + steps);
+        Fitness.getSensorsClient(activity, account)
+                .findDataSources(new DataSourcesRequest.Builder()
+                        .setDataTypes(DataType.TYPE_HEART_RATE_BPM, DataType.TYPE_STEP_COUNT_DELTA, DataType.TYPE_CALORIES_EXPENDED)
+                        .setDataSourceTypes(DataSource.TYPE_DERIVED)
+                        .build())
+                .addOnSuccessListener(dataSources -> {
+                    if (dataSources != null && !dataSources.isEmpty()) {
+                        for (DataSource dataSource : dataSources) {
+                            Log.d(TAG, "Found Data Source: " + dataSource.getDataType().getName());
+                            registerLiveSensorListener(dataSource);
+                        }
+                    } else {
+                        Log.e(TAG, "No Data Sources found.");
+                    }
                 })
-                .addOnFailureListener(e -> Log.e(TAG, "Error fetching steps data", e));
+                .addOnFailureListener(e -> Log.e(TAG, "Error finding data sources", e));
+    }
 
-        // Fetch Calories Burned
-        Fitness.getHistoryClient(activity, account)
-                .readDailyTotal(DataType.TYPE_CALORIES_EXPENDED)
-                .addOnSuccessListener(dataSet -> {
-                    float calories = dataSet.isEmpty() ? 0 : dataSet.getDataPoints().get(0).getValue(Field.FIELD_CALORIES).asFloat();
-                    Log.d(TAG, "Calories Burned: " + calories);
-                })
-                .addOnFailureListener(e -> Log.e(TAG, "Error fetching calories data", e));
+    private void registerLiveSensorListener(DataSource dataSource) {
+        GoogleSignInAccount account = GoogleSignIn.getLastSignedInAccount(activity);
+        if (account == null) return;
 
-        // Fetch Heart Rate
+        Fitness.getSensorsClient(activity, account)
+                .add(new SensorRequest.Builder()
+                                .setDataSource(dataSource)
+                                .setDataType(dataSource.getDataType())
+                                .setSamplingRate(1, TimeUnit.SECONDS)
+                                .build(),
+                        this::handleLiveSensorData)
+                .addOnSuccessListener(unused -> Log.d(TAG, "Live sensor listener registered successfully!"))
+                .addOnFailureListener(e -> Log.e(TAG, "Failed to register live sensor listener", e));
+    }
+
+    private void handleLiveSensorData(DataPoint dataPoint) {
+        for (Field field : dataPoint.getDataType().getFields()) {
+            String label = field.getName();
+            float value = dataPoint.getValue(field).asFloat();
+            Log.d(TAG, "Live Data - " + label + ": " + value);
+            updateUI(label, value);
+        }
+    }
+
+    public void fetchHistoricalHealthData() {
+        GoogleSignInAccount account = GoogleSignIn.getLastSignedInAccount(activity);
+        if (account == null) {
+            Log.e(TAG, "Google Sign-In required before accessing Google Fit data.");
+            return;
+        }
+
+        fetchData(DataType.TYPE_STEP_COUNT_DELTA, "Step Count");
+        fetchData(DataType.TYPE_CALORIES_EXPENDED, "Calories Burned");
+        fetchData(DataType.TYPE_HEART_RATE_BPM, "Heart Rate");
+    }
+
+    private void fetchData(DataType dataType, String label) {
+        GoogleSignInAccount account = GoogleSignIn.getLastSignedInAccount(activity);
+        if (account == null) {
+            Log.e(TAG, "Google Sign-In required before accessing Google Fit data.");
+            return;
+        }
+
+        DataReadRequest readRequest = new DataReadRequest.Builder()
+                .read(dataType)
+                .setTimeRange(1, System.currentTimeMillis(), TimeUnit.MILLISECONDS)
+                .build();
+
         Fitness.getHistoryClient(activity, account)
-                .readDailyTotal(DataType.TYPE_HEART_RATE_BPM)
-                .addOnSuccessListener(dataSet -> {
-                    float heartRate = dataSet.isEmpty() ? 0 : dataSet.getDataPoints().get(0).getValue(Field.FIELD_BPM).asFloat();
-                    Log.d(TAG, "Heart Rate: " + heartRate);
+                .readData(readRequest)
+                .addOnSuccessListener(response -> {
+                    List<DataSet> dataSets = response.getDataSets();
+                    for (DataSet dataSet : dataSets) {
+                        float value = getDataPointValue(dataSet, dataType);
+                        Log.d(TAG, label + ": " + value);
+                        updateUI(label, value);
+                    }
                 })
-                .addOnFailureListener(e -> Log.e(TAG, "Error fetching heart rate data", e));
+                .addOnFailureListener(e -> Log.e(TAG, "Failed to fetch " + label, e));
+    }
+
+    private float getDataPointValue(DataSet dataSet, DataType dataType) {
+        return (dataSet == null || dataSet.isEmpty()) ? 0 : dataSet.getDataPoints().get(0).getValue(dataType.getFields().get(0)).asFloat();
+    }
+
+    public void setHealthDataListener(HealthDataListener listener) {
+        this.healthDataListener = listener;
+    }
+
+    private void updateUI(String label, float value) {
+        if (healthDataListener != null) {
+            healthDataListener.onDataReceived(label, value);
+        }
     }
 }

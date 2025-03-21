@@ -11,6 +11,11 @@
     <color name="background_color">#121212</color> <!-- Dark background -->
     <color name="lightGray">#D3D3D3</color> <!-- Light gray color -->
     <color name="dark_gray">#555555</color>
+    <color name="red">#E53935</color>
+    <color name="blue">#1E88E5</color>
+    <color name="orange">#FB8C00</color>
+    <color name="light_gray">#D3D3D3</color>
+    <color name="primary">#6200EE</color>
 
 
 </resources>
