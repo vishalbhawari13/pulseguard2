@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.drawerlayout.widget.DrawerLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.drawerlayout.widget.DrawerLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/drawer_layout"
@@ -8,25 +7,12 @@
     android:layout_height="match_parent"
     tools:context=".activities.DashboardActivity">
 
-    <!-- ✅ Main Layout (All Items Centered) -->
+    <!-- Main Content -->
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
-        <!-- ✅ Toolbar (Remains at the Top) -->
-        <androidx.appcompat.widget.Toolbar
-            android:id="@+id/toolbar"
-            android:layout_width="match_parent"
-            android:layout_height="?attr/actionBarSize"
-            android:background="?attr/colorPrimary"
-            android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
-            app:popupTheme="@style/ThemeOverlay.AppCompat.Light"
-            app:title="PulseGuard"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent" />
-
-        <!-- ✅ Welcome Text (Centered) -->
+        <!-- Welcome Text -->
         <TextView
             android:id="@+id/welcome_text"
             android:layout_width="wrap_content"
@@ -34,43 +20,38 @@
             android:text="@string/welcome_message"
             android:textSize="20sp"
             android:textStyle="bold"
-            android:layout_marginTop="20dp"
-            app:layout_constraintTop_toBottomOf="@id/toolbar"
+            android:layout_marginTop="50dp"
+            android:layout_marginStart="20dp"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent" />
+            app:layout_constraintTop_toTopOf="parent" />
 
-        <!-- ✅ Button (Centered Below Text) -->
+        <!-- Button for Stats Activity -->
         <Button
             android:id="@+id/btn_stats"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/view_health_stats"
-            android:layout_marginTop="20dp"
-            app:layout_constraintTop_toBottomOf="@id/welcome_text"
+            android:layout_marginTop="30dp"
+            android:layout_marginStart="20dp"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent" />
+            app:layout_constraintTop_toBottomOf="@id/welcome_text" />
 
-        <!-- ✅ Bottom Navigation View (Stays at Bottom) -->
+        <!-- Bottom Navigation (Moved Inside ConstraintLayout) -->
         <com.google.android.material.bottomnavigation.BottomNavigationView
             android:id="@+id/bottom_navigation"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             app:menu="@menu/bottom_nav_menu"
-            app:itemIconTint="@color/black"
-            app:itemTextColor="@color/black"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent" />
+            app:layout_constraintBottom_toBottomOf="parent" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
-    <!-- ✅ Navigation Drawer (Side Menu) -->
+    <!-- Navigation Drawer -->
     <com.google.android.material.navigation.NavigationView
         android:id="@+id/nav_view"
         android:layout_width="wrap_content"
         android:layout_height="match_parent"
         android:layout_gravity="start"
-        app:menu="@menu/drawer_menu"
-        app:headerLayout="@layout/nav_header" />
+        app:menu="@menu/drawer_menu" />
 
 </androidx.drawerlayout.widget.DrawerLayout>
