@@ -2,14 +2,17 @@ package com.example.pulseguard.activities;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 
@@ -23,61 +26,100 @@ public class DashboardActivity extends AppCompatActivity implements NavigationVi
 
     private DrawerLayout drawerLayout;
     private FirebaseAuth firebaseAuth;
+    private FirebaseUser user;
     private TextView welcomeText, navUserName;
+    private Button btnViewStats;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_dashboard);
 
-        // Initialize Firebase Auth
+        // Initialize Firebase Authentication
         firebaseAuth = FirebaseAuth.getInstance();
-        FirebaseUser user = firebaseAuth.getCurrentUser();
+        user = firebaseAuth.getCurrentUser();
 
-        // Drawer Layout and Navigation
+        // Setup Custom Toolbar
+        Toolbar toolbar = findViewById(R.id.toolbar);
+
+
+        // Initialize Drawer Layout & Navigation View
         drawerLayout = findViewById(R.id.drawer_layout);
         NavigationView navigationView = findViewById(R.id.nav_view);
-
         if (navigationView != null) {
             navigationView.setNavigationItemSelectedListener(this);
-
-            // Get Navigation Header View to Update User Name
             View headerView = navigationView.getHeaderView(0);
             if (headerView != null) {
                 navUserName = headerView.findViewById(R.id.nav_user_name);
             }
         }
 
-        // Bottom Navigation
+        // Bottom Navigation Setup
         BottomNavigationView bottomNavigationView = findViewById(R.id.bottom_navigation);
         if (bottomNavigationView != null) {
-            bottomNavigationView.setOnNavigationItemSelectedListener(this::onBottomNavigationItemSelected);
+            bottomNavigationView.setOnItemSelectedListener(this::onBottomNavigationItemSelected);
         }
 
-        // Display User's Name in Dashboard & Navigation Drawer
+        // Display User Info
         welcomeText = findViewById(R.id.welcome_text);
-        if (welcomeText != null) {
-            if (user != null) {
-                String displayName = user.getDisplayName();
-                welcomeText.setText("Welcome, " + displayName);
-                if (navUserName != null) {
-                    navUserName.setText(displayName);
-                }
-            } else {
-                welcomeText.setText("Welcome to PulseGuard");
-                if (navUserName != null) {
-                    navUserName.setText("Guest User");
-                }
-            }
-        }
+        updateUserInfo();
 
-        // ActionBar Toggle for Drawer
-        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(this, drawerLayout, R.string.open, R.string.close);
+        // Initialize Button
+        btnViewStats = findViewById(R.id.btn_stats);
+        btnViewStats.setOnClickListener(v -> {
+            Intent intent = new Intent(DashboardActivity.this, HealthStatsActivity.class);
+            startActivity(intent);
+        });
+
+        // ActionBar Drawer Toggle
+        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
+                this, drawerLayout, toolbar, R.string.open, R.string.close);
         drawerLayout.addDrawerListener(toggle);
         toggle.syncState();
     }
 
-    // Handle Navigation Drawer Item Clicks
+    /**
+     * Updates user info on Dashboard & Navigation Drawer.
+     */
+    private void updateUserInfo() {
+        if (user != null) {
+            String displayName = user.getDisplayName();
+            welcomeText.setText("Welcome, " + (displayName != null ? displayName : "User"));
+            if (navUserName != null) {
+                navUserName.setText(displayName != null ? displayName : "Guest User");
+            }
+        } else {
+            welcomeText.setText("Welcome to PulseGuard");
+            if (navUserName != null) {
+                navUserName.setText("Guest User");
+            }
+        }
+    }
+
+    /**
+     * Inflate the menu for logout.
+     */
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.top_right_menu, menu);
+        return true;
+    }
+
+    /**
+     * Handle action bar item clicks.
+     */
+    @Override
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        if (item.getItemId() == R.id.action_logout) {
+            logoutUser();
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
+    /**
+     * Handle navigation drawer item clicks.
+     */
     @Override
     public boolean onNavigationItemSelected(@NonNull MenuItem item) {
         int id = item.getItemId();
@@ -94,22 +136,30 @@ public class DashboardActivity extends AppCompatActivity implements NavigationVi
         return true;
     }
 
-    // Handle Bottom Navigation Clicks
+    /**
+     * Handle bottom navigation item clicks.
+     */
     private boolean onBottomNavigationItemSelected(MenuItem item) {
-        if (item.getItemId() == R.id.bottom_home) {
+        int id = item.getItemId();
+
+        if (id == R.id.bottom_home) {
             Toast.makeText(this, "Home Clicked", Toast.LENGTH_SHORT).show();
-        } else if (item.getItemId() == R.id.bottom_stats) {
-            startActivity(new Intent(this, StatsActivity.class));
+            return true;
+        } else if (id == R.id.bottom_stats) {
+            startActivity(new Intent(this, HealthStatsActivity.class));
+            return true;
         }
-        return true;
+        return false;
     }
 
-    // Logout Functionality
+    /**
+     * Logout user and redirect to Login Screen.
+     */
     private void logoutUser() {
         firebaseAuth.signOut();
         Toast.makeText(this, "Logged out successfully!", Toast.LENGTH_SHORT).show();
         Intent intent = new Intent(this, MainActivity.class);
-        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK); // Clears activity stack
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         startActivity(intent);
         finish();
     }

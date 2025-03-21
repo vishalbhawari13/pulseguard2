@@ -41,7 +41,7 @@
             android:name="com.google.android.gms.auth.api.signin.GOOGLE_SIGN_IN"
             android:value="@string/default_web_client_id"/>
 
-        <!-- Main Activity (Must be exported for launcher) -->
+        <!-- Main Activity (Launcher) -->
         <activity
             android:name=".activities.MainActivity"
             android:exported="true"
@@ -63,14 +63,20 @@
             android:exported="false"
             android:theme="@style/Theme.Pulseguard" />
 
-        <!-- Google Sign-In Activity Fix (Important for Firebase Authentication) -->
+        <!-- Missing Activity (Fix for ActivityNotFoundException) -->
+        <activity
+            android:name=".activities.HealthStatsActivity"
+            android:exported="false"
+            android:theme="@style/Theme.Pulseguard" />
+
+        <!-- Google Sign-In Fix -->
         <activity
             android:name="com.google.android.gms.auth.api.signin.internal.SignInHubActivity"
             android:exported="true"
             tools:replace="android:exported">
         </activity>
 
-        <!-- Firebase Authentication Activity (Google Sign-In Fix) -->
+        <!-- Firebase Authentication Fix -->
         <activity
             android:name="com.google.firebase.auth.internal.GenericIdpActivity"
             android:exported="true"
