@@ -4,6 +4,7 @@ import android.os.Bundle;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.ViewModelProvider;
 import android.widget.TextView;
+
 import com.example.pulseguard.R;
 import com.example.pulseguard.utils.GoogleFitHelper;
 import com.example.pulseguard.viewmodel.HealthStatsViewModel;
@@ -58,6 +59,14 @@ public class HealthStatsActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
+        // Fetch historical health data from Google Fit when activity is resumed
         googleFitHelper.fetchHistoricalHealthData();
     }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        // Removed cleanup if not necessary
+    }
+
 }

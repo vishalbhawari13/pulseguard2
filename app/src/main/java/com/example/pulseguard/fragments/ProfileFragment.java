@@ -1,63 +1,76 @@
 package com.example.pulseguard.fragments;
 
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.TextView;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+
 import com.example.pulseguard.R;
 import com.example.pulseguard.activities.LoginActivity;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 
 public class ProfileFragment extends Fragment {
+
+    private ImageView profileImage;
     private TextView tvUsername, tvEmail;
-    private Button btnLogout;
+    private Button btnEditProfile, btnLogout;
+
+    private FirebaseAuth mAuth;
 
     public ProfileFragment() {
         // Required empty public constructor
     }
 
-    @Nullable
     @Override
-    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_profile, container, false);
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
+                             @Nullable Bundle savedInstanceState) {
+        // Inflate the layout for this fragment
+        View rootView = inflater.inflate(R.layout.fragment_profile, container, false);
 
-        // Initialize UI components
-        tvUsername = view.findViewById(R.id.tv_username);
-        tvEmail = view.findViewById(R.id.tv_email);
-        btnLogout = view.findViewById(R.id.btn_logout);
+        // Initialize Firebase Auth
+        mAuth = FirebaseAuth.getInstance();
 
-        // Get user details from Firebase Auth
-        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
-        if (user != null) {
-            tvUsername.setText(user.getDisplayName());
-            tvEmail.setText(user.getEmail());
-        } else {
-            tvUsername.setText("Guest");
-            tvEmail.setText("No Email Available");
+        // Initialize views
+        profileImage = rootView.findViewById(R.id.profile_image);
+        tvUsername = rootView.findViewById(R.id.tv_username);
+        tvEmail = rootView.findViewById(R.id.tv_email);
+        btnEditProfile = rootView.findViewById(R.id.btn_edit_profile);
+        btnLogout = rootView.findViewById(R.id.btn_logout);
+
+        // Get current user details
+        FirebaseUser currentUser = mAuth.getCurrentUser();
+        if (currentUser != null) {
+            tvUsername.setText(currentUser.getDisplayName() != null ? currentUser.getDisplayName() : "Username");
+            tvEmail.setText(currentUser.getEmail());
+            // You can add profile image loading here using libraries like Glide or Picasso
+            // For now, setting a default profile image
+            profileImage.setImageResource(R.drawable.ic_profile);
         }
 
-        // Logout button click listener
-        btnLogout.setOnClickListener(v -> {
-            FirebaseAuth.getInstance().signOut();
-
-            // Clear shared preferences (if storing user data)
-            SharedPreferences preferences = requireActivity().getSharedPreferences("UserPrefs", 0);
-            preferences.edit().clear().apply();
-
-            // Redirect to LoginActivity
-            Intent intent = new Intent(getActivity(), LoginActivity.class);
-            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-            startActivity(intent);
+        // Set button listeners
+        btnEditProfile.setOnClickListener(v -> {
+            // Handle edit profile (you can navigate to another activity or fragment to edit profile)
+            // Example: startActivity(new Intent(getContext(), EditProfileActivity.class));
         });
 
-        return view;
+        btnLogout.setOnClickListener(v -> {
+            // Handle logout
+            mAuth.signOut();
+            // Redirect to Login screen after logout
+            Intent loginIntent = new Intent(getContext(), LoginActivity.class);
+            startActivity(loginIntent);
+            getActivity().finish();
+        });
+
+        return rootView;
     }
 }

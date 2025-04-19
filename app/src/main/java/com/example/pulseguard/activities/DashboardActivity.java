@@ -25,6 +25,7 @@ public class DashboardActivity extends AppCompatActivity {
         btnStats.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                // Intent to start HealthStatsActivity
                 Intent intent = new Intent(DashboardActivity.this, HealthStatsActivity.class);
                 startActivity(intent);
             }

@@ -1,3 +1,4 @@
+/*
 package com.example.pulseguard.fragments;
 
 import android.os.Bundle;
@@ -21,3 +22,4 @@ public class HomeFragment extends Fragment {
         return inflater.inflate(R.layout.fragment_home, container, false);
     }
 }
+*/

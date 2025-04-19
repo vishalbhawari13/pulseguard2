@@ -1,5 +1,4 @@
 package com.example.pulseguard.utils;
-
 import android.Manifest;
 import android.app.Activity;
 import android.content.pm.PackageManager;
@@ -110,7 +109,7 @@ public class GoogleFitHelper {
             String label = field.getName();
             float value = dataPoint.getValue(field).asFloat();
             Log.d(TAG, "Live Data - " + label + ": " + value);
-            updateUI(label, value);
+            updateLiveUI(label, value); // Call renamed method for live data
         }
     }
 
@@ -133,11 +132,20 @@ public class GoogleFitHelper {
             return;
         }
 
+        // Get current time in milliseconds
+        long currentTimeMillis = System.currentTimeMillis();
+
+        // Calculate the start and end times for yesterday
+        long endOfYesterday = currentTimeMillis - (currentTimeMillis % TimeUnit.DAYS.toMillis(1)); // End of yesterday (midnight)
+        long startOfYesterday = endOfYesterday - TimeUnit.DAYS.toMillis(1); // Start of yesterday (midnight of the previous day)
+
+        // Create a DataReadRequest with yesterday's date range
         DataReadRequest readRequest = new DataReadRequest.Builder()
                 .read(dataType)
-                .setTimeRange(1, System.currentTimeMillis(), TimeUnit.MILLISECONDS)
+                .setTimeRange(startOfYesterday, endOfYesterday, TimeUnit.MILLISECONDS)
                 .build();
 
+        // Fetch the data from Google Fit
         Fitness.getHistoryClient(activity, account)
                 .readData(readRequest)
                 .addOnSuccessListener(response -> {
@@ -145,21 +153,29 @@ public class GoogleFitHelper {
                     for (DataSet dataSet : dataSets) {
                         float value = getDataPointValue(dataSet, dataType);
                         Log.d(TAG, label + ": " + value);
-                        updateUI(label, value);
+                        updateHistoricalUI(label, value); // Call renamed method for historical data
                     }
                 })
                 .addOnFailureListener(e -> Log.e(TAG, "Failed to fetch " + label, e));
     }
 
     private float getDataPointValue(DataSet dataSet, DataType dataType) {
-        return (dataSet == null || dataSet.isEmpty()) ? 0 : dataSet.getDataPoints().get(0).getValue(dataType.getFields().get(0)).asFloat();
+        return (dataSet == null || dataSet.getDataPoints().isEmpty()) ? 0 : dataSet.getDataPoints().get(0).getValue(dataType.getFields().get(0)).asFloat();
     }
 
     public void setHealthDataListener(HealthDataListener listener) {
         this.healthDataListener = listener;
     }
 
-    private void updateUI(String label, float value) {
+    // Renamed method for live data
+    private void updateLiveUI(String label, float value) {
+        if (healthDataListener != null) {
+            healthDataListener.onDataReceived(label, value);
+        }
+    }
+
+    // Renamed method for historical data
+    private void updateHistoricalUI(String label, float value) {
         if (healthDataListener != null) {
             healthDataListener.onDataReceived(label, value);
         }
