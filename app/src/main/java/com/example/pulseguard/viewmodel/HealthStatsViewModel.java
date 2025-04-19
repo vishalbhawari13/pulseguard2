@@ -10,6 +10,7 @@ public class HealthStatsViewModel extends ViewModel {
     private final MutableLiveData<String> heartRate = new MutableLiveData<>("0 BPM");
     private final MutableLiveData<String> caloriesBurned = new MutableLiveData<>("0 kcal");
 
+    // LiveData Getters
     public LiveData<String> getSleepDuration() {
         return sleepDuration;
     }
@@ -26,6 +27,7 @@ public class HealthStatsViewModel extends ViewModel {
         return caloriesBurned;
     }
 
+    // Update Methods
     public void updateSleepDuration(int hours, int minutes) {
         sleepDuration.postValue(hours + "h " + minutes + "m");
     }
@@ -40,5 +42,35 @@ public class HealthStatsViewModel extends ViewModel {
 
     public void updateCaloriesBurned(int calories) {
         caloriesBurned.postValue(calories + " kcal");
+    }
+
+    // Method to reset all values (optional)
+    public void resetStats() {
+        sleepDuration.postValue("0h 0m");
+        stepCount.postValue("0");
+        heartRate.postValue("0 BPM");
+        caloriesBurned.postValue("0 kcal");
+    }
+
+    // Method to update health data
+    public void updateHealthData(String label, float value) {
+        switch (label) {
+            case "Step Count":
+                updateStepCount((int) value);
+                break;
+            case "Heart Rate":
+                updateHeartRate((int) value);
+                break;
+            case "Calories Burned":
+                updateCaloriesBurned((int) value);
+                break;
+            case "Sleep Duration":
+                int hours = (int) value / 60;
+                int minutes = (int) value % 60;
+                updateSleepDuration(hours, minutes);
+                break;
+            default:
+                break;
+        }
     }
 }

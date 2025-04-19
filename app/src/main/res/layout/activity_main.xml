@@ -65,4 +65,22 @@
         android:background="@drawable/button_rounded_secondary"
         android:textColor="@android:color/white"
         android:layout_marginTop="16dp"/>
+
+    <!-- Heart Rate TextView -->
+    <TextView
+        android:id="@+id/textViewHeartRate"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Heart Rate: 0 BPM"
+        android:textSize="18sp"
+        android:layout_marginTop="20dp" />
+
+    <!-- Step Count TextView -->
+    <TextView
+        android:id="@+id/textViewStepCount"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Steps: 0"
+        android:textSize="18sp"
+        android:layout_marginTop="20dp" />
 </LinearLayout>

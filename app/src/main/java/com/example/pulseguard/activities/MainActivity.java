@@ -19,18 +19,28 @@ import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.auth.api.signin.GoogleSignInClient;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.android.gms.common.api.ApiException;
+import com.google.android.gms.fitness.Fitness;
+import com.google.android.gms.fitness.FitnessOptions;
+import com.google.android.gms.fitness.data.DataType;
+import com.google.android.gms.fitness.data.DataSet;
+import com.google.android.gms.fitness.data.DataPoint;
+import com.google.android.gms.fitness.data.Field;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthCredential;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.GoogleAuthProvider;
 
+import java.util.concurrent.TimeUnit;
+
 public class MainActivity extends AppCompatActivity {
 
     private static final String TAG = "MainActivity";
+    private static final int REQUEST_CODE_GOOGLE_FIT = 1001;
 
     private GoogleSignInClient googleSignInClient;
     private FirebaseAuth firebaseAuth;
+    private GoogleSignInAccount googleSignInAccount;
 
     private TextView welcomeText;
     private ProgressBar progressBar;
@@ -48,7 +58,6 @@ public class MainActivity extends AppCompatActivity {
                 .requestIdToken(getString(R.string.default_web_client_id))
                 .requestEmail()
                 .build();
-
         googleSignInClient = GoogleSignIn.getClient(this, gso);
 
         // Initialize UI Components
@@ -59,6 +68,25 @@ public class MainActivity extends AppCompatActivity {
         // Check if a user is already signed in
         FirebaseUser currentUser = firebaseAuth.getCurrentUser();
         updateUI(currentUser);
+
+        // Set up Google Fit permissions
+        FitnessOptions fitnessOptions = FitnessOptions.builder()
+                .addDataType(DataType.TYPE_HEART_RATE_BPM, FitnessOptions.ACCESS_READ)
+                .addDataType(DataType.TYPE_STEP_COUNT_DELTA, FitnessOptions.ACCESS_READ)
+                .addDataType(DataType.TYPE_CALORIES_EXPENDED, FitnessOptions.ACCESS_READ)
+                .build();
+        googleSignInAccount = GoogleSignIn.getAccountForExtension(this, fitnessOptions);
+
+        // Check if the user has already granted permissions
+        if (!GoogleSignIn.hasPermissions(googleSignInAccount, fitnessOptions)) {
+            GoogleSignIn.requestPermissions(
+                    this,
+                    REQUEST_CODE_GOOGLE_FIT,
+                    googleSignInAccount,
+                    fitnessOptions);
+        } else {
+            accessGoogleFitData(googleSignInAccount);
+        }
     }
 
     /**
@@ -147,5 +175,35 @@ public class MainActivity extends AppCompatActivity {
     private void navigateToDashboard() {
         startActivity(new Intent(MainActivity.this, DashboardActivity.class));
         finish();
+    }
+
+    // Handle the result of Google Sign-In permission request for Google Fit
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == REQUEST_CODE_GOOGLE_FIT) {
+            if (resultCode == RESULT_OK) {
+                accessGoogleFitData(googleSignInAccount);
+            }
+        }
+    }
+
+    // Access Google Fit data
+    public void accessGoogleFitData(GoogleSignInAccount account) {
+        Fitness.getHistoryClient(this, account)
+                .readData(new com.google.android.gms.fitness.request.DataReadRequest.Builder()
+                        .read(DataType.TYPE_HEART_RATE_BPM)
+                        .setTimeRange(1, System.currentTimeMillis(), TimeUnit.MILLISECONDS)
+                        .build())
+                .addOnSuccessListener(dataReadResponse -> {
+                    for (DataSet dataSet : dataReadResponse.getDataSets()) {
+                        for (DataPoint dataPoint : dataSet.getDataPoints()) {
+                            // Extract heart rate data
+                            float heartRate = dataPoint.getValue(Field.FIELD_INTENSITY).asFloat();
+                            Log.d(TAG, "Heart Rate: " + heartRate);
+                        }
+                    }
+                })
+                .addOnFailureListener(e -> Log.e(TAG, "Error reading heart rate data", e));
     }
 }
